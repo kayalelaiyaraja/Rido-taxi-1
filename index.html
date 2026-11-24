@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Rido Taxi - taxi booking and fare management system" />
+  <meta name="theme-color" content="#0b1426" />
+  <title>Rido Taxi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#" data-view="dashboard" aria-label="Rido Taxi home">
+        <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+          <rect x="2" y="2" width="44" height="44" rx="12" fill="#d2b48c" />
+          <path d="M14 29l2.6-7.2A3 3 0 0 1 19.4 20h9.2a3 3 0 0 1 2.8 1.8L34 29" fill="none" stroke="#0b1426" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="11" y="28" width="26" height="7" rx="3" fill="#0b1426"/>
+          <circle cx="17" cy="36" r="2.6" fill="#d2b48c" stroke="#0b1426" stroke-width="1.6"/>
+          <circle cx="31" cy="36" r="2.6" fill="#d2b48c" stroke="#0b1426" stroke-width="1.6"/>
+          <rect x="21" y="15" width="6" height="3" rx="1" fill="#0b1426"/>
+        </svg>
+        <span class="brand-text">Rido <em>Taxi</em></span>
+      </a>
+      <button class="menu-btn" id="menuBtn" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav" id="nav">
+        <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+        <button class="nav-btn" data-view="drivers">Drivers</button>
+        <button class="nav-btn" data-view="vehicles">Vehicles</button>
+        <button class="nav-btn" data-view="booking">Book a Ride</button>
+        <button class="nav-btn" data-view="allocation">Allocation <span class="pill" id="pendingPill">0</span></button>
+        <button class="nav-btn" data-view="trips">Trips <span class="pill" id="activePill">0</span></button>
+        <button class="nav-btn" data-view="reports">Reports</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="hero">
+        <div>
+          <p class="eyebrow">Taxi booking &amp; fare management</p>
+          <h1>Every ride, <span class="accent">accounted for.</span></h1>
+          <p class="lead">Register drivers and vehicles, take bookings, allocate trips, calculate fares and review history, all in one place.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" data-view="booking">Book a ride</button>
+            <button class="btn btn-ghost" id="demoBtn">Load demo data</button>
+            <button class="btn btn-quiet" id="resetBtn">Reset all data</button>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">Revenue (completed trips)</p>
+          <p class="hero-card-value" id="statRevenue">₹0</p>
+          <p class="hero-card-sub"><span id="statCompleted">0</span> completed &middot; <span id="statCancelled">0</span> cancelled</p>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><p class="stat-num" id="statDrivers">0</p><p class="stat-label">Drivers</p></div>
+        <div class="stat"><p class="stat-num" id="statVehicles">0</p><p class="stat-label">Vehicles</p></div>
+        <div class="stat"><p class="stat-num" id="statPending">0</p><p class="stat-label">Awaiting allocation</p></div>
+        <div class="stat"><p class="stat-num" id="statActive">0</p><p class="stat-label">Trips in progress</p></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2>Fare rates</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Category</th><th>Base fare</th><th>Per km</th><th>Seats</th></tr></thead>
+              <tbody id="rateTable"></tbody>
+            </table>
+          </div>
+          <p class="note">Extras: night surcharge 25% (10 PM to 6 AM), waiting ₹2/min, tolls at actuals, 5% GST on fare. Cancelling an allocated trip costs ₹50.</p>
+        </div>
+        <div class="card">
+          <h2>Recent bookings</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Customer</th><th>Route</th><th>Status</th></tr></thead>
+              <tbody id="recentTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DRIVERS -->
+    <section class="view" id="view-drivers">
+      <div class="section-head">
+        <h1>Driver registration</h1>
+        <p>Add the drivers who will take trips.</p>
+      </div>
+      <div class="grid-form">
+        <form class="card" id="driverForm" novalidate>
+          <h2>New driver</h2>
+          <label>Full name
+            <input type="text" id="dName" placeholder="e.g. Arjun Mehta" required />
+          </label>
+          <label>Phone
+            <input type="tel" id="dPhone" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10" required />
+          </label>
+          <label>Licence number
+            <input type="text" id="dLicense" placeholder="e.g. TN0120190012345" required />
+          </label>
+          <label>Experience (years)
+            <input type="number" id="dExp" min="0" max="60" value="1" required />
+          </label>
+          <p class="form-error" id="dError" role="alert"></p>
+          <button class="btn btn-primary" type="submit">Register driver</button>
+        </form>
+        <div class="card">
+          <h2>Registered drivers <span class="count" id="dCount">0</span></h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Licence</th><th>Exp.</th><th>Status</th><th></th></tr></thead>
+              <tbody id="driverTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VEHICLES -->
+    <section class="view" id="view-vehicles">
+      <div class="section-head">
+        <h1>Vehicle management</h1>
+        <p>Keep track of the fleet and its category.</p>
+      </div>
+      <div class="grid-form">
+        <form class="card" id="vehicleForm" novalidate>
+          <h2>New vehicle</h2>
+          <label>Registration number
+            <input type="text" id="vReg" placeholder="e.g. TN 09 AB 1234" required />
+          </label>
+          <label>Make &amp; model
+            <input type="text" id="vModel" placeholder="e.g. Toyota Etios" required />
+          </label>
+          <label>Category
+            <select id="vCategory" required></select>
+          </label>
+          <label>Seats
+            <input type="number" id="vSeats" min="2" max="12" value="4" required />
+          </label>
+          <p class="form-error" id="vError" role="alert"></p>
+          <button class="btn btn-primary" type="submit">Add vehicle</button>
+        </form>
+        <div class="card">
+          <h2>Fleet <span class="count" id="vCount">0</span></h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Registration</th><th>Model</th><th>Category</th><th>Seats</th><th>Status</th><th></th></tr></thead>
+              <tbody id="vehicleTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOOKING -->
+    <section class="view" id="view-booking">
+      <div class="section-head">
+        <h1>Book a ride</h1>
+        <p>Enter the trip details and see the estimated fare before confirming.</p>
+      </div>
+      <div class="grid-form">
+        <form class="card" id="bookingForm" novalidate>
+          <h2>Customer booking</h2>
+          <div class="row">
+            <label>Customer name
+              <input type="text" id="bName" placeholder="Full name" required />
+            </label>
+            <label>Phone
+              <input type="tel" id="bPhone" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10" required />
+            </label>
+          </div>
+          <label>Pickup location
+            <input type="text" id="bPickup" placeholder="e.g. T. Nagar" required />
+          </label>
+          <label>Drop location
+            <input type="text" id="bDrop" placeholder="e.g. Chennai Airport" required />
+          </label>
+          <div class="row">
+            <label>Distance (km)
+              <input type="number" id="bDistance" min="0.5" step="0.1" placeholder="e.g. 14.5" required />
+            </label>
+            <label>Vehicle category
+              <select id="bCategory" required></select>
+            </label>
+          </div>
+          <label>Pickup date &amp; time
+            <input type="datetime-local" id="bDateTime" required />
+          </label>
+          <p class="form-error" id="bError" role="alert"></p>
+          <button class="btn btn-primary" type="submit">Confirm booking</button>
+        </form>
+
+        <div class="card estimate">
+          <h2>Fare estimate</h2>
+          <dl class="fare-list" id="estimateBox"></dl>
+          <p class="note">Waiting time and tolls are added when the trip is completed.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ALLOCATION -->
+    <section class="view" id="view-allocation">
+      <div class="section-head">
+        <h1>Driver &amp; vehicle allocation</h1>
+        <p>Match each pending booking with an available driver and a vehicle of the requested category.</p>
+      </div>
+      <div class="card">
+        <h2>Pending bookings <span class="count" id="allocCount">0</span></h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Customer</th><th>Route</th><th>Category</th><th>Driver</th><th>Vehicle</th><th></th></tr></thead>
+            <tbody id="allocTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRIPS -->
+    <section class="view" id="view-trips">
+      <div class="section-head">
+        <h1>Trips &amp; fare calculation</h1>
+        <p>Complete a trip to calculate the final fare, or cancel it.</p>
+      </div>
+      <div class="card">
+        <h2>Trips in progress <span class="count" id="tripCount">0</span></h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Customer</th><th>Route</th><th>Driver</th><th>Vehicle</th><th>Est. fare</th><th></th></tr></thead>
+            <tbody id="tripTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="view" id="view-reports">
+      <div class="section-head">
+        <h1>Trip history reports</h1>
+        <p>Completed and cancelled trips, plus a driver-wise summary.</p>
+      </div>
+
+      <div class="card">
+        <h2>Driver-wise summary</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Driver</th><th>Trips</th><th>Completed</th><th>Cancelled</th><th>Distance (km)</th><th>Earnings</th></tr></thead>
+            <tbody id="summaryTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Trip history <span class="count" id="historyCount">0</span></h2>
+          <div class="filters">
+            <select id="fStatus" aria-label="Filter by status">
+              <option value="all">All statuses</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+            <select id="fDriver" aria-label="Filter by driver"><option value="all">All drivers</option></select>
+            <input type="search" id="fSearch" placeholder="Search customer or place" aria-label="Search history" />
+            <button class="btn btn-ghost" id="csvBtn" type="button">Export CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Closed</th><th>Customer</th><th>Route</th><th>Driver</th><th>Km</th><th>Fare</th><th>Status</th></tr></thead>
+            <tbody id="historyTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Complete trip dialog -->
+  <dialog id="completeDialog">
+    <form method="dialog" id="completeForm">
+      <h2>Complete trip <span id="cTripId"></span></h2>
+      <p class="note" id="cTripInfo"></p>
+      <div class="row">
+        <label>Actual distance (km)
+          <input type="number" id="cDistance" min="0.5" step="0.1" required />
+        </label>
+        <label>Waiting time (min)
+          <input type="number" id="cWaiting" min="0" step="1" value="0" />
+        </label>
+      </div>
+      <label>Toll / parking charges (₹)
+        <input type="number" id="cToll" min="0" step="1" value="0" />
+      </label>
+      <dl class="fare-list" id="completeBreakdown"></dl>
+      <div class="dialog-actions">
+        <button class="btn btn-ghost" type="button" id="cCancel">Back</button>
+        <button class="btn btn-primary" type="submit" id="cConfirm">Complete trip</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <footer class="footer">
+    <p>&copy; <span id="year"></span> Rido Taxi. Data is stored in your browser only.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
